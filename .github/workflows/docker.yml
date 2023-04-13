@@ -44,7 +44,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/diced/zipline:trunk
-            ghcr.io/diced/zipline:trunk-${{ steps.version.outputs.zipline_version }}
+            ghcr.io/danejur/zipline:trunk
+            ghcr.io/danejur/zipline:trunk-${{ steps.version.outputs.zipline_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
