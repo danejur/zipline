@@ -77,7 +77,7 @@ export default function Manage({ oauth_registration, oauth_providers: raw_oauth_
     Discord: IconBrandDiscordFilled,
     GitHub: IconBrandGithubFilled,
     Google: IconBrandGoogle,
-    Authentik: IconKey,
+    OIDC: IconKey,
   };
 
   for (const provider of oauth_providers) {

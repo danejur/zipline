@@ -47,7 +47,7 @@ export default function Login({
     GitHub: IconBrandGithub,
     Discord: IconBrandDiscordFilled,
     Google: IconBrandGoogle,
-    Authentik: IconKey,
+    OIDC: IconKey,
   };
 
   for (const provider of oauth_providers) {

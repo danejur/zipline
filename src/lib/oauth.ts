@@ -49,10 +49,10 @@ export const google_auth = {
   },
 };
 
-export const authentik_auth = {
+export const oidc_auth = {
   oauth_url: (clientId: string, origin: string, authorize_url: string, state?: string) =>
     `${authorize_url}?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-      `${origin}/api/auth/oauth/authentik`
+      `${origin}/api/auth/oauth/oidc`
     )}&response_type=code&scope=openid+email+profile${state ? `&state=${state}` : ''}`,
   oauth_user: async (access_token: string, user_info_url: string) => {
     const res = await fetch(user_info_url, {

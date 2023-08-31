@@ -150,11 +150,11 @@ export default function readConfig() {
     map('OAUTH_GOOGLE_CLIENT_ID', 'string', 'oauth.google_client_id'),
     map('OAUTH_GOOGLE_CLIENT_SECRET', 'string', 'oauth.google_client_secret'),
 
-    map('OAUTH_AUTHENTIK_CLIENT_ID', 'string', 'oauth.authentik_client_id'),
-    map('OAUTH_AUTHENTIK_CLIENT_SECRET', 'string', 'oauth.authentik_client_secret'),
-    map('OAUTH_AUTHENTIK_AUTHORIZE_URL', 'string', 'oauth.authentik_authorize_url'),
-    map('OAUTH_AUTHENTIK_USERINFO_URL', 'string', 'oauth.authentik_userinfo_url'),
-    map('OAUTH_AUTHENTIK_TOKEN_URL', 'string', 'oauth.authentik_token_url'),
+    map('OAUTH_OIDC_CLIENT_ID', 'string', 'oauth.oidc_client_id'),
+    map('OAUTH_OIDC_CLIENT_SECRET', 'string', 'oauth.oidc_client_secret'),
+    map('OAUTH_OIDC_AUTHORIZE_URL', 'string', 'oauth.oidc_authorize_url'),
+    map('OAUTH_OIDC_USERINFO_URL', 'string', 'oauth.oidc_userinfo_url'),
+    map('OAUTH_OIDC_TOKEN_URL', 'string', 'oauth.oidc_token_url'),
 
     map('FEATURES_INVITES', 'boolean', 'features.invites'),
     map('FEATURES_INVITES_LENGTH', 'number', 'features.invites_length'),
