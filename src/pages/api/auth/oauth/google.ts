@@ -3,7 +3,7 @@ import Logger from 'lib/logger';
 import { OAuthQuery, OAuthResponse, withOAuth } from 'lib/middleware/withOAuth';
 import { withZipline } from 'lib/middleware/withZipline';
 import { google_auth } from 'lib/oauth';
-import { getBase64URLFromURL, notNull } from 'lib/util';
+import { getBase64URLFromURL, isNotNullOrUndefined } from 'lib/util';
 
 async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promise<OAuthResponse> {
   if (!config.features.oauth_registration)
@@ -12,7 +12,10 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
       error: 'oauth registration is disabled',
     };
 
-  if (!notNull(config.oauth.google_client_id, config.oauth.google_client_secret)) {
+  if (
+    !isNotNullOrUndefined(config.oauth.google_client_id) &&
+    !isNotNullOrUndefined(config.oauth.google_client_secret)
+  ) {
     logger.error('Google OAuth is not configured');
     return {
       error_code: 401,
@@ -25,7 +28,8 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
       redirect: google_auth.oauth_url(
         config.oauth.google_client_id,
         `${config.core.return_https ? 'https' : 'http'}://${host}`,
-        state
+        state,
+        config.oauth.google_redirect_uri,
       ),
     };
 
@@ -33,7 +37,9 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
     code,
     client_id: config.oauth.google_client_id,
     client_secret: config.oauth.google_client_secret,
-    redirect_uri: `${config.core.return_https ? 'https' : 'http'}://${host}/api/auth/oauth/google`,
+    redirect_uri:
+      config.oauth.google_redirect_uri ||
+      `${config.core.return_https ? 'https' : 'http'}://${host}/api/auth/oauth/google`,
     grant_type: 'authorization_code',
   });
 

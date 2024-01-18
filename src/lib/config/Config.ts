@@ -10,6 +10,7 @@ export interface ConfigCore {
 
   stats_interval: number;
   invites_interval: number;
+  thumbnails_interval: number;
 }
 
 export interface ConfigCompression {
@@ -56,6 +57,7 @@ export interface ConfigUploader {
   format_date: string;
   default_expiration: string;
   assume_mimetypes: boolean;
+  random_words_separator: string;
 }
 
 export interface ConfigUrls {
@@ -120,17 +122,26 @@ export interface ConfigFeatures {
   headless: boolean;
 
   default_avatar: string;
+
+  robots_txt: string;
+
+  thumbnails: boolean;
 }
 
 export interface ConfigOAuth {
+  bypass_local_login: boolean;
+
   github_client_id?: string;
   github_client_secret?: string;
 
   discord_client_id?: string;
   discord_client_secret?: string;
+  discord_redirect_uri?: string;
+  discord_whitelisted_users?: string[];
 
   google_client_id?: string;
   google_client_secret?: string;
+  google_redirect_uri?: string;
 
   authentik_client_id?: string;
   authentik_client_secret?: string;

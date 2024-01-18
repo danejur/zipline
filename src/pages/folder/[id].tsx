@@ -12,6 +12,7 @@ type LimitedFolder = {
     createdAt: Date | string;
     mimetype: string;
     views: number;
+    size: bigint;
   }[];
   user: {
     username: string;
@@ -83,6 +84,13 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
           views: true,
           createdAt: true,
           password: true,
+          size: true,
+          thumbnail: {
+            select: {
+              name: true,
+              id: true,
+            },
+          },
         },
       },
       user: {
@@ -101,8 +109,11 @@ export const getServerSideProps: GetServerSideProps<Props> = async (context) => 
   for (let j = 0; j !== folder.files.length; ++j) {
     (folder.files[j] as unknown as { url: string }).url = formatRootUrl(
       config.uploader.route,
-      folder.files[j].name
+      folder.files[j].name,
     );
+
+    // @ts-ignore
+    folder.files[j].size = Number(folder.files[j].size);
 
     // @ts-ignore
     if (folder.files[j].password) folder.files[j].password = true;

@@ -3,6 +3,8 @@ import Logger from 'lib/logger';
 import prisma from 'lib/prisma';
 import { hashPassword } from 'lib/util';
 import { jsonUserReplacer } from 'lib/utils/client';
+import { formatRootUrl } from 'lib/utils/urls';
+import zconfig from 'lib/config';
 import { NextApiReq, NextApiRes, UserExtended, withZipline } from 'middleware/withZipline';
 
 const logger = Logger.get('user');
@@ -13,6 +15,14 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
   const target = await prisma.user.findFirst({
     where: {
       id: Number(id),
+    },
+    include: {
+      files: {
+        include: {
+          thumbnail: true,
+        },
+      },
+      Folder: true,
     },
   });
 
@@ -26,7 +36,7 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
     promises.push(
       prisma.user.delete({
         where: { id: target.id },
-      })
+      }),
     );
 
     if (req.body.delete_files) {
@@ -51,7 +61,7 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
           where: {
             userId: target.id,
           },
-        })
+        }),
       );
     }
     Promise.all(promises).then((promised) => {
@@ -61,10 +71,10 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
 
       req.body.delete_files
         ? logger.info(
-            `User ${user.username} (${user.id}) deleted ${count} files of user ${newTarget.username} (${newTarget.id})`
+            `User ${user.username} (${user.id}) deleted ${count} files of user ${newTarget.username} (${newTarget.id})`,
           )
         : logger.info(
-            `User ${user.username} (${user.id}) deleted user ${newTarget.username} (${newTarget.id})`
+            `User ${user.username} (${user.id}) deleted user ${newTarget.username} (${newTarget.id})`,
           );
 
       delete newTarget.password;
@@ -167,13 +177,29 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
     logger.debug(`updated user ${id} with ${JSON.stringify(newUser, jsonUserReplacer)}`);
 
     logger.info(
-      `User ${user.username} (${user.id}) updated ${target.username} (${newUser.username}) (${newUser.id})`
+      `User ${user.username} (${user.id}) updated ${target.username} (${newUser.username}) (${newUser.id})`,
     );
 
     delete newUser.password;
     return res.json(newUser);
   } else {
     delete target.password;
+
+    if (user.superAdmin && target.superAdmin) {
+      delete target.files;
+      return res.json(target);
+    }
+    if (user.administrator && !user.superAdmin && (target.administrator || target.superAdmin)) {
+      delete target.files;
+      return res.json(target);
+    }
+
+    for (const file of target.files) {
+      (file as unknown as { url: string }).url = formatRootUrl(zconfig.uploader.route, file.name);
+      if (file.thumbnail) {
+        (file.thumbnail as unknown as string) = formatRootUrl('/r', file.thumbnail.name);
+      }
+    }
 
     return res.json(target);
   }

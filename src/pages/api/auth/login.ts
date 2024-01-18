@@ -14,8 +14,8 @@ async function handler(req: NextApiReq, res: NextApiRes) {
     code?: string;
   };
 
-  const users = await prisma.user.findMany();
-  if (users.length === 0) {
+  const users = await prisma.user.count();
+  if (users === 0) {
     logger.debug('no users found... creating default user...');
     await prisma.user.create({
       data: {
@@ -51,7 +51,7 @@ async function handler(req: NextApiReq, res: NextApiRes) {
 
     const success = verify_totp_code(user.totpSecret, code);
     logger.debug(
-      `body(${JSON.stringify(req.body)}): verify_totp_code(${user.totpSecret}, ${code}) => ${success}`
+      `body(${JSON.stringify(req.body)}): verify_totp_code(${user.totpSecret}, ${code}) => ${success}`,
     );
     if (!success) return res.badRequest('Invalid code', { totp: true });
   }

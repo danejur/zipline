@@ -4,10 +4,8 @@ import {
   Box,
   Burger,
   Button,
-  Group,
   Header,
   Image,
-  Input,
   MediaQuery,
   Menu,
   Navbar,
@@ -222,21 +220,14 @@ export default function Layout({ children, props }) {
       labels: { confirm: 'Copy', cancel: 'Cancel' },
       onConfirm: async () => {
         clipboard.copy(token);
+
         if (!navigator.clipboard)
           showNotification({
-            title: 'Unable to copy to clipboard',
-            message: (
-              <Text size='sm'>
-                Zipline is unable to copy to clipboard due to security reasons. However, you can still copy
-                the token manually.
-                <br />
-                <Group position='left' spacing='sm'>
-                  <Text>Your token is:</Text>
-                  <Input size='sm' onFocus={(e) => e.target.select()} type='text' value={token} />
-                </Group>
-              </Text>
-            ),
+            title: 'Unable to copy token',
+            message:
+              "Zipline couldn't copy to your clipboard. Please copy the token manually from the settings page.",
             color: 'red',
+            icon: <IconClipboardCopy size='1rem' />,
           });
         else
           showNotification({
@@ -291,7 +282,7 @@ export default function Layout({ children, props }) {
                     component={Link}
                     href={link}
                   />
-                )
+                ),
               )}
           </Navbar.Section>
           <Navbar.Section>
@@ -360,13 +351,22 @@ export default function Layout({ children, props }) {
                 <Menu.Target>
                   <Button
                     leftIcon={
-                      avatar ? <Image src={avatar} height={32} radius='md' /> : <IconUserCog size='1rem' />
+                      avatar ? (
+                        <Image src={avatar} height={32} width={32} fit='cover' radius='md' />
+                      ) : (
+                        <IconUserCog size='1rem' />
+                      )
                     }
                     variant='subtle'
                     color='gray'
                     compact
                     size='xl'
                     p='sm'
+                    styles={{
+                      label: {
+                        overflow: 'unset',
+                      },
+                    }}
                   >
                     {user.username}
                   </Button>
@@ -418,16 +418,20 @@ export default function Layout({ children, props }) {
                   </Menu.Item>
                   <Menu.Divider />
                   <>
-                    {oauth_providers.filter((x) =>
-                      user.oauth?.map(({ provider }) => provider.toLowerCase()).includes(x.name.toLowerCase())
+                    {oauth_providers.filter(
+                      (x) =>
+                        user.oauth
+                          ?.map(({ provider }) => provider.toLowerCase())
+                          .includes(x.name.toLowerCase()),
                     ).length ? (
                       <Menu.Label>Connected Accounts</Menu.Label>
                     ) : null}
                     {oauth_providers
-                      .filter((x) =>
-                        user.oauth
-                          ?.map(({ provider }) => provider.toLowerCase())
-                          .includes(x.name.toLowerCase())
+                      .filter(
+                        (x) =>
+                          user.oauth
+                            ?.map(({ provider }) => provider.toLowerCase())
+                            .includes(x.name.toLowerCase()),
                       )
                       .map(({ name, Icon }, i) => (
                         <>
@@ -440,8 +444,11 @@ export default function Layout({ children, props }) {
                           </Menu.Item>
                         </>
                       ))}
-                    {oauth_providers.filter((x) =>
-                      user.oauth?.map(({ provider }) => provider.toLowerCase()).includes(x.name.toLowerCase())
+                    {oauth_providers.filter(
+                      (x) =>
+                        user.oauth
+                          ?.map(({ provider }) => provider.toLowerCase())
+                          .includes(x.name.toLowerCase()),
                     ).length ? (
                       <Menu.Divider />
                     ) : null}

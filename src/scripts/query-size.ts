@@ -29,7 +29,7 @@ async function main() {
 
   for (let i = 0; i !== files.length; ++i) {
     const file = files[i];
-    if (!datasource.get(file.name)) {
+    if (!(await datasource.get(file.name))) {
       if (process.argv.includes('--force-delete')) {
         console.log(`File ${file.name} does not exist. Deleting...`);
         await prisma.file.delete({
@@ -60,11 +60,14 @@ async function main() {
     }
   }
 
+  await prisma.$disconnect();
+
   notFound
     ? console.log(
-        'At least one file has been found to not exist in the datasource but was on the database. To remove these files, run the script with the --force-delete flag.'
+        'At least one file has been found to not exist in the datasource but was on the database. To remove these files, run the script with the --force-delete flag.',
       )
     : console.log('Done.');
+
   process.exit(0);
 }
 

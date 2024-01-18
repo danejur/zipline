@@ -49,6 +49,7 @@ export default function FileModal({
   reducedActions = false,
   exifEnabled,
   compress,
+  otherUser = false,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -58,6 +59,7 @@ export default function FileModal({
   reducedActions?: boolean;
   exifEnabled?: boolean;
   compress: boolean;
+  otherUser: boolean;
 }) {
   const deleteFile = useFileDelete();
   const favoriteFile = useFileFavorite();
@@ -95,18 +97,12 @@ export default function FileModal({
   const handleCopy = () => {
     clipboard.copy(`${window.location.protocol}//${window.location.host}${file.url}`);
     setOpen(false);
-    if (!navigator.clipboard)
-      showNotification({
-        title: 'Unable to copy to clipboard',
-        message: 'Zipline is unable to copy to clipboard due to security reasons.',
-        color: 'red',
-      });
-    else
-      showNotification({
-        title: 'Copied to clipboard',
-        message: '',
-        icon: <IconClipboardCopy size='1rem' />,
-      });
+
+    showNotification({
+      title: 'Copied to clipboard',
+      message: '',
+      icon: <IconClipboardCopy size='1rem' />,
+    });
   };
 
   const handleFavorite = async () => {
@@ -129,7 +125,7 @@ export default function FileModal({
             icon: <IconPhotoCancel size='1rem' />,
           });
         },
-      }
+      },
     );
   };
 
@@ -282,7 +278,7 @@ export default function FileModal({
               </ActionIcon>
             </Tooltip>
           )}
-          {reducedActions ? null : inFolder && !folders.isLoading ? (
+          {reducedActions || otherUser ? null : inFolder && !folders.isLoading ? (
             <Tooltip
               label={`Remove from folder "${folders.data.find((f) => f.id === file.folderId)?.name ?? ''}"`}
             >

@@ -1,5 +1,5 @@
 import config from 'lib/config';
-import { notNull, notNullArray } from 'lib/util';
+import { isNotNullOrUndefined } from 'lib/util';
 import { GetServerSideProps } from 'next';
 
 export type OauthProvider = {
@@ -16,8 +16,10 @@ export type ServerSideProps = {
   user_registration: boolean;
   oauth_registration: boolean;
   oauth_providers: string;
+  bypass_local_login: boolean;
   chunks_size: number;
   max_size: number;
+  chunks_enabled: boolean;
   totp_enabled: boolean;
   exif_enabled: boolean;
   fileId?: string;
@@ -25,15 +27,20 @@ export type ServerSideProps = {
 };
 
 export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (ctx) => {
-  const ghEnabled = notNull(config.oauth?.github_client_id, config.oauth?.github_client_secret);
-  const discEnabled = notNull(config.oauth?.discord_client_id, config.oauth?.discord_client_secret);
-  const googleEnabled = notNull(config.oauth?.google_client_id, config.oauth?.google_client_secret);
-  const authentikEnabled = notNullArray([
-    config.oauth?.authentik_client_id,
-    config.oauth?.authentik_client_secret,
-    config.oauth?.authentik_authorize_url,
-    config.oauth?.authentik_userinfo_url,
-    config.oauth?.authentik_token_url,
+  const ghEnabled =
+    isNotNullOrUndefined(config.oauth?.github_client_id) &&
+    isNotNullOrUndefined(config.oauth?.github_client_secret);
+  const discEnabled =
+    isNotNullOrUndefined(config.oauth?.discord_client_id) &&
+    isNotNullOrUndefined(config.oauth?.discord_client_secret);
+  const googleEnabled =
+    isNotNullOrUndefined(config.oauth?.google_client_id) &&
+    isNotNullOrUndefined(config.oauth?.google_client_secret);
+  const authentikEnabled = isNotNullOrUndefined(config.oauth?.authentik_client_id) &&
+    isNotNullOrUndefined(config.oauth?.authentik_client_secret) &&
+    isNotNullOrUndefined(config.oauth?.authentik_authorize_url) &&
+    isNotNullOrUndefined(config.oauth?.authentik_userinfo_url) &&
+    isNotNullOrUndefined(config.oauth?.authentik_token_url)
   ]);
 
   const oauth_providers: OauthProvider[] = [];
@@ -74,9 +81,11 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (ct
       user_registration: config.features.user_registration,
       oauth_registration: config.features.oauth_registration,
       oauth_providers: JSON.stringify(oauth_providers),
+      bypass_local_login: config.oauth?.bypass_local_login ?? false,
       chunks_size: config.chunks.chunks_size,
       max_size: config.chunks.max_size,
       totp_enabled: config.mfa.totp_enabled,
+      chunks_enabled: config.chunks.enabled,
       exif_enabled: config.exif.enabled,
       compress: config.core.compression.on_dashboard,
     } as ServerSideProps,

@@ -51,22 +51,22 @@ export function humanTime(string: StringValue | string): Date {
   }
 }
 
-export function parseExpiry(header: string): Date | null {
-  if (!header) return null;
+export function parseExpiry(header: string): Date {
+  if (!header) throw new Error('no expiry provided');
   header = header.toLowerCase();
 
   if (header.startsWith('date=')) {
     const date = new Date(header.substring(5));
 
-    if (!date.getTime()) return null;
-    if (date.getTime() < Date.now()) return null;
+    if (!date.getTime()) throw new Error('invalid date');
+    if (date.getTime() < Date.now()) throw new Error('expiry must be in the future');
     return date;
   }
 
   const human = humanTime(header);
 
-  if (!human) return null;
-  if (human.getTime() < Date.now()) return null;
+  if (!human) throw new Error('failed to parse human time');
+  if (human.getTime() < Date.now()) throw new Error('expiry must be in the future');
 
   return human;
 }
@@ -125,7 +125,7 @@ export function expireReadToDate(expires: string): Date {
       '6m': Date.now() + 6 * 30 * 24 * 60 * 60 * 1000,
       '8m': Date.now() + 8 * 30 * 24 * 60 * 60 * 1000,
       '1y': Date.now() + 365 * 24 * 60 * 60 * 1000,
-    }[expires]
+    }[expires],
   );
 }
 

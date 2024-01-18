@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import config from 'lib/config';
 import Logger from 'lib/logger';
 import { NextApiReq, NextApiRes, UserExtended, withZipline } from 'lib/middleware/withZipline';
@@ -16,8 +17,12 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
       count: number;
     };
 
-    const expiry = parseExpiry(expiresAt);
-    if (!expiry) return res.badRequest('invalid date');
+    let expiry: Date;
+    try {
+      expiry = parseExpiry(expiresAt);
+    } catch (error) {
+      return res.badRequest(error.message);
+    }
     const counts = count ? count : 1;
 
     if (counts > 1) {
@@ -37,7 +42,7 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
       logger.info(
         `${user.username} (${user.id}) created ${data.length} invites with codes ${data
           .map((invite) => invite.code)
-          .join(', ')}`
+          .join(', ')}`,
       );
 
       return res.json(data);
@@ -60,19 +65,22 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
     const { code } = req.query as { code: string };
     if (!code) return res.badRequest('no code');
 
-    const invite = await prisma.invite.delete({
-      where: {
-        code,
-      },
-    });
+    try {
+      const invite = await prisma.invite.delete({
+        where: {
+          code,
+        },
+      });
 
-    if (!invite) return res.notFound('invite not found');
+      logger.debug(`deleted invite ${JSON.stringify(invite)}`);
 
-    logger.debug(`deleted invite ${JSON.stringify(invite)}`);
+      logger.info(`${user.username} (${user.id}) deleted invite ${invite.code}`);
 
-    logger.info(`${user.username} (${user.id}) deleted invite ${invite.code}`);
-
-    return res.json(invite);
+      return res.json(invite);
+    } catch (error) {
+      if (error instanceof PrismaClientKnownRequestError) return res.notFound('invite not found');
+      else throw error;
+    }
   } else {
     const invites = await prisma.invite.findMany({
       orderBy: {

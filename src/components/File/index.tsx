@@ -32,9 +32,10 @@ export default function File({
   image,
   disableMediaPreview,
   exifEnabled,
-  refreshImages,
+  refreshImages = undefined,
   reducedActions = false,
   onDash,
+  otherUser = false,
 }) {
   const [open, setOpen] = useState(false);
   const deleteFile = useFileDelete();
@@ -44,7 +45,7 @@ export default function File({
   const folders = useFolders();
 
   const refresh = () => {
-    refreshImages();
+    if (!otherUser) refreshImages();
     folders.refetch();
   };
 
@@ -59,9 +60,25 @@ export default function File({
         reducedActions={reducedActions}
         exifEnabled={exifEnabled}
         compress={onDash}
+        otherUser={otherUser}
       />
 
-      <Card sx={{ maxWidth: '100%', height: '100%' }} shadow='md' onClick={() => setOpen(true)}>
+      <Card
+        sx={{
+          maxWidth: '100%',
+          height: '100%',
+          '&:hover': {
+            filter: 'brightness(0.75)',
+          },
+          transition: 'filter 0.2s ease-in-out',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        shadow='md'
+        onClick={() => setOpen(true)}
+      >
         <Card.Section>
           <LoadingOverlay visible={loading} />
           <Type

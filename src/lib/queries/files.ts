@@ -29,17 +29,27 @@ export const useFiles = (query: { [key: string]: string } = {}) => {
               ...x,
               createdAt: new Date(x.createdAt),
               expiresAt: x.expiresAt ? new Date(x.expiresAt) : null,
-            }))
+            })),
       );
   });
 };
-export const usePaginatedFiles = (page?: number, filter = 'media', favorite = null) => {
-  const queryBuilder = new URLSearchParams({
+
+export type PaginatedFilesOptions = {
+  filter: 'media' | 'none';
+  favorite: boolean;
+  sortBy: 'createdAt' | 'views' | 'expiresAt' | 'size' | 'name' | 'mimetype';
+  order: 'asc' | 'desc';
+};
+
+export const usePaginatedFiles = (page?: number, options?: Partial<PaginatedFilesOptions>) => {
+  const queryString = new URLSearchParams({
     page: Number(page || '1').toString(),
-    filter,
-    ...(favorite !== null && { favorite: favorite.toString() }),
-  });
-  const queryString = queryBuilder.toString();
+    filter: options?.filter ?? 'none',
+    // ...(options?.favorite !== null && { favorite: options?.favorite?.toString() }),
+    favorite: options.favorite ? 'true' : '',
+    sortBy: options.sortBy ?? '',
+    order: options.order ?? '',
+  }).toString();
 
   return useQuery<UserFilesResponse[]>(['files', queryString], async () => {
     return fetch('/api/user/paged?' + queryString)
@@ -49,7 +59,7 @@ export const usePaginatedFiles = (page?: number, filter = 'media', favorite = nu
           ...x,
           createdAt: new Date(x.createdAt),
           expiresAt: x.expiresAt ? new Date(x.expiresAt) : null,
-        }))
+        })),
       );
   });
 };
@@ -63,7 +73,7 @@ export const useRecent = (filter?: string) => {
           ...x,
           createdAt: new Date(x.createdAt),
           expiresAt: x.expiresAt ? new Date(x.expiresAt) : null,
-        }))
+        })),
       );
   });
 };
@@ -84,7 +94,7 @@ export function useFileDelete() {
       onSuccess: () => {
         queryClient.refetchQueries(['files']);
       },
-    }
+    },
   );
 }
 
@@ -104,7 +114,7 @@ export function useFileFavorite() {
       onSuccess: () => {
         queryClient.refetchQueries(['files']);
       },
-    }
+    },
   );
 }
 

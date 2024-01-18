@@ -20,8 +20,13 @@ export class S3 extends Datasource {
     });
   }
 
-  public async save(file: string, data: Buffer): Promise<void> {
-    await this.s3.putObject(this.config.bucket, file, data);
+  public async save(file: string, data: Buffer, options?: { type: string }): Promise<void> {
+    await this.s3.putObject(
+      this.config.bucket,
+      file,
+      data,
+      options ? { 'Content-Type': options.type } : undefined,
+    );
   }
 
   public async delete(file: string): Promise<void> {
@@ -49,23 +54,20 @@ export class S3 extends Datasource {
     });
   }
 
-  public size(file: string): Promise<number> {
-    return new Promise((res, rej) => {
-      this.s3.statObject(this.config.bucket, file, (err, stat) => {
-        if (err) rej(err);
-        else res(stat.size);
-      });
-    });
+  public async size(file: string): Promise<number> {
+    const stat = await this.s3.statObject(this.config.bucket, file);
+
+    return stat.size;
   }
 
   public async fullSize(): Promise<number> {
-    return new Promise((res, rej) => {
+    return new Promise((res) => {
       const objects = this.s3.listObjectsV2(this.config.bucket, '', true);
       let size = 0;
 
       objects.on('data', (item) => (size += item.size));
       objects.on('end', (err) => {
-        if (err) rej(err);
+        if (err) res(0);
         else res(size);
       });
     });

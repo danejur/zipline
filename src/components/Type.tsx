@@ -27,7 +27,7 @@ import PrismCode from './render/PrismCode';
 
 function PlaceholderContent({ text, Icon }) {
   return (
-    <Group sx={(t) => ({ color: t.colors.dark[2] })}>
+    <Group sx={(t) => ({ color: t.colors.dark[2], padding: 3, justifyContent: 'center' })}>
       <Icon size={48} />
       <Text size='md'>{text}</Text>
     </Group>
@@ -48,6 +48,35 @@ function Placeholder({ text, Icon, ...props }) {
     <Box sx={{ height: 320 }} {...props}>
       <Center sx={{ height: 320 }}>
         <PlaceholderContent text={text} Icon={Icon} />
+      </Center>
+    </Box>
+  );
+}
+
+function VideoThumbnailPlaceholder({ file, mediaPreview, ...props }) {
+  if (!file.thumbnail || !mediaPreview)
+    return <Placeholder Icon={IconPlayerPlay} text={`Click to view video (${file.name})`} {...props} />;
+
+  return (
+    <Box sx={{ position: 'relative' }}>
+      <Image
+        src={typeof file.thumbnail === 'string' ? file.thumbnail : `/r/${file.thumbnail.name}`}
+        sx={{
+          width: '100%',
+          height: 'auto',
+        }}
+      />
+
+      <Center
+        sx={{
+          position: 'absolute',
+          height: '100%',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        <IconPlayerPlay size={48} />
       </Center>
     </Box>
   );
@@ -159,7 +188,8 @@ export default function Type({ file, popup = false, disableMediaPreview, ...prop
     )
   ) : media ? (
     {
-      video: <Placeholder Icon={IconPlayerPlay} text={`Click to view video (${file.name})`} {...props} />,
+      // video: <Placeholder Icon={IconPlayerPlay} text={`Click to view video (${file.name})`} {...props} />,
+      video: <VideoThumbnailPlaceholder file={file} mediaPreview={!disableMediaPreview} />,
       image: (
         <Image
           placeholder={<PlaceholderContent Icon={IconPhotoCancel} text={'Image failed to load...'} />}

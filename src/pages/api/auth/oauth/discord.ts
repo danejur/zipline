@@ -3,7 +3,7 @@ import Logger from 'lib/logger';
 import { OAuthQuery, OAuthResponse, withOAuth } from 'lib/middleware/withOAuth';
 import { withZipline } from 'lib/middleware/withZipline';
 import { discord_auth } from 'lib/oauth';
-import { getBase64URLFromURL, notNull } from 'lib/util';
+import { getBase64URLFromURL, isNotNullOrUndefined } from 'lib/util';
 
 async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promise<OAuthResponse> {
   if (!config.features.oauth_registration)
@@ -12,7 +12,10 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
       error: 'oauth registration is disabled',
     };
 
-  if (!notNull(config.oauth.discord_client_id, config.oauth.discord_client_secret)) {
+  if (
+    !isNotNullOrUndefined(config.oauth.discord_client_id) &&
+    !isNotNullOrUndefined(config.oauth.discord_client_secret)
+  ) {
     logger.error('Discord OAuth is not configured');
 
     return {
@@ -26,7 +29,8 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
       redirect: discord_auth.oauth_url(
         config.oauth.discord_client_id,
         `${config.core.return_https ? 'https' : 'http'}://${host}`,
-        state
+        state,
+        config.oauth.discord_redirect_uri,
       ),
     };
 
@@ -35,7 +39,9 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
     client_secret: config.oauth.discord_client_secret,
     code,
     grant_type: 'authorization_code',
-    redirect_uri: `${config.core.return_https ? 'https' : 'http'}://${host}/api/auth/oauth/discord`,
+    redirect_uri:
+      config.oauth.discord_redirect_uri ||
+      `${config.core.return_https ? 'https' : 'http'}://${host}/api/auth/oauth/discord`,
     scope: 'identify',
   });
 
@@ -66,6 +72,12 @@ async function handler({ code, state, host }: OAuthQuery, logger: Logger): Promi
     ? `https://cdn.discordapp.com/avatars/${userJson.id}/${userJson.avatar}.png`
     : `https://cdn.discordapp.com/embed/avatars/${userJson.discriminator % 5}.png`;
   const avatarBase64 = await getBase64URLFromURL(avatar);
+
+  if (
+    config.oauth.discord_whitelisted_users?.length &&
+    !config.oauth.discord_whitelisted_users.includes(userJson.id)
+  )
+    return { error: 'user is not whitelisted' };
 
   return {
     username: userJson.username,

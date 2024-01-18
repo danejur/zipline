@@ -63,8 +63,11 @@ export default function readConfig() {
     map('CORE_PORT', 'number', 'core.port'),
     map('CORE_DATABASE_URL', 'string', 'core.database_url'),
     map('CORE_LOGGER', 'boolean', 'core.logger'),
+
     map('CORE_STATS_INTERVAL', 'number', 'core.stats_interval'),
     map('CORE_INVITES_INTERVAL', 'number', 'core.invites_interval'),
+    map('CORE_THUMBNAILS_INTERVAL', 'number', 'core.thumbnails_interval'),
+
     map('CORE_COMPRESSION_ENABLED', 'boolean', 'core.compression.enabled'),
     map('CORE_COMPRESSION_THRESHOLD', 'human-to-byte', 'core.compression.threshold'),
     map('CORE_COMPRESSION_ON_DASHBOARD', 'boolean', 'core.compression.on_dashboard'),
@@ -95,6 +98,7 @@ export default function readConfig() {
     map('UPLOADER_FORMAT_DATE', 'string', 'uploader.format_date'),
     map('UPLOADER_DEFAULT_EXPIRATION', 'string', 'uploader.default_expiration'),
     map('UPLOADER_ASSUME_MIMETYPES', 'boolean', 'uploader.assume_mimetypes'),
+    map('UPLOADER_RANDOM_WORDS_SEPARATOR', 'string', 'uploader.random_words_separator'),
 
     map('URLS_ROUTE', 'string', 'urls.route'),
     map('URLS_LENGTH', 'number', 'urls.length'),
@@ -136,14 +140,19 @@ export default function readConfig() {
     map('DISCORD_SHORTEN_EMBED_THUMBNAIL', 'boolean', 'discord.shorten.embed.thumbnail'),
     map('DISCORD_SHORTEN_EMBED_TIMESTAMP', 'boolean', 'discord.shorten.embed.timestamp'),
 
+    map('OAUTH_BYPASS_LOCAL_LOGIN', 'boolean', 'oauth.bypass_local_login'),
+
     map('OAUTH_GITHUB_CLIENT_ID', 'string', 'oauth.github_client_id'),
     map('OAUTH_GITHUB_CLIENT_SECRET', 'string', 'oauth.github_client_secret'),
 
     map('OAUTH_DISCORD_CLIENT_ID', 'string', 'oauth.discord_client_id'),
     map('OAUTH_DISCORD_CLIENT_SECRET', 'string', 'oauth.discord_client_secret'),
+    map('OAUTH_DISCORD_REDIRECT_URI', 'string', 'oauth.discord_redirect_uri'),
+    map('OAUTH_DISCORD_WHITELISTED_USERS', 'array', 'oauth.discord_whitelisted_users'),
 
     map('OAUTH_GOOGLE_CLIENT_ID', 'string', 'oauth.google_client_id'),
     map('OAUTH_GOOGLE_CLIENT_SECRET', 'string', 'oauth.google_client_secret'),
+    map('OAUTH_GOOGLE_REDIRECT_URI', 'string', 'oauth.google_redirect_uri'),
 
     map('OAUTH_AUTHENTIK_CLIENT_ID', 'string', 'oauth.authentik_client_id'),
     map('OAUTH_AUTHENTIK_CLIENT_SECRET', 'string', 'oauth.authentik_client_secret'),
@@ -161,6 +170,10 @@ export default function readConfig() {
     map('FEATURES_HEADLESS', 'boolean', 'features.headless'),
 
     map('FEATURES_DEFAULT_AVATAR', 'path', 'features.default_avatar'),
+
+    map('FEATURES_ROBOTS_TXT', 'boolean', 'features.robots_txt'),
+
+    map('FEATURES_THUMBNAILS', 'boolean', 'features.thumbnails'),
 
     map('CHUNKS_MAX_SIZE', 'human-to-byte', 'chunks.max_size'),
     map('CHUNKS_CHUNKS_SIZE', 'human-to-byte', 'chunks.chunks_size'),

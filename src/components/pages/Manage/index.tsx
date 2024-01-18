@@ -1,9 +1,11 @@
 import {
+  ActionIcon,
   Anchor,
   Box,
   Button,
   Card,
   ColorInput,
+  CopyButton,
   FileInput,
   Group,
   Image,
@@ -23,6 +25,8 @@ import {
   IconBrandDiscordFilled,
   IconBrandGithubFilled,
   IconBrandGoogle,
+  IconCheck,
+  IconClipboardCopy,
   IconFileExport,
   IconFiles,
   IconFilesOff,
@@ -91,6 +95,7 @@ export default function Manage({ oauth_registration, oauth_providers: raw_oauth_
   const [file, setFile] = useState<File | null>(null);
   const [fileDataURL, setFileDataURL] = useState(user.avatar ?? null);
   const [totpEnabled, setTotpEnabled] = useState(!!user.totpSecret);
+  const [tokenShown, setTokenShown] = useState(false);
 
   const getDataURL = (f: File): Promise<string> => {
     return new Promise((res, rej) => {
@@ -265,7 +270,7 @@ export default function Manage({ oauth_registration, oauth_providers: raw_oauth_
           size: s.size,
           full: s.name,
         }))
-        .sort((a, b) => a.date.getTime() - b.date.getTime())
+        .sort((a, b) => a.date.getTime() - b.date.getTime()),
     );
   };
 
@@ -364,9 +369,27 @@ export default function Manage({ oauth_registration, oauth_providers: raw_oauth_
       <Title>Manage User</Title>
       <MutedText size='md'>
         Want to use variables in embed text? Visit{' '}
-        <AnchorNext href='https://zipline.diced.tech/docs/guides/variables'>the docs</AnchorNext> for
-        variables
+        <AnchorNext href='https://zipline.diced.sh/docs/guides/variables'>the docs</AnchorNext> for variables
       </MutedText>
+
+      <TextInput
+        rightSection={
+          <CopyButton value={user.token} timeout={1000}>
+            {({ copied, copy }) => (
+              <ActionIcon onClick={copy}>
+                {copied ? <IconCheck color='green' size='1rem' /> : <IconClipboardCopy size='1rem' />}
+              </ActionIcon>
+            )}
+          </CopyButton>
+        }
+        // @ts-ignore (this works even though ts doesn't allow for it)
+        component='span'
+        label='Token'
+        onClick={() => setTokenShown(true)}
+      >
+        {tokenShown ? user.token : '[click to reveal]'}
+      </TextInput>
+
       <form onSubmit={form.onSubmit((v) => onSubmit(v))}>
         <TextInput id='username' label='Username' my='sm' {...form.getInputProps('username')} />
         <PasswordInput
@@ -466,7 +489,7 @@ export default function Manage({ oauth_registration, oauth_providers: raw_oauth_
             {oauth_providers
               .filter(
                 (x) =>
-                  !user.oauth?.map(({ provider }) => provider.toLowerCase()).includes(x.name.toLowerCase())
+                  !user.oauth?.map(({ provider }) => provider.toLowerCase()).includes(x.name.toLowerCase()),
               )
               .map(({ link_url, name, Icon }, i) => (
                 <Button key={i} size='lg' leftIcon={<Icon />} component={Link} href={link_url} my='sm'>

@@ -1,10 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { readdir, readFile } from 'fs/promises';
+import { statSync } from 'fs';
 import { join } from 'path';
 import config from 'lib/config';
 import datasource from 'lib/datasource';
 import { guess } from 'lib/mimes';
 import { migrations } from 'server/util';
+import { bytesToHuman } from 'lib/utils/bytes';
 
 async function main() {
   const directory = process.argv[2];
@@ -25,13 +27,16 @@ async function main() {
 
   for (let i = 0; i !== files.length; ++i) {
     const mime = await guess(files[i].split('.').pop());
+    const { size } = statSync(join(directory, files[i]));
 
-    data.push({
+    data[i] = {
       name: files[i],
       mimetype: mime,
       userId,
-    });
-    console.log(`Imported ${files[i]} (${mime} mimetype) to user ${userId}`);
+      size,
+    };
+
+    console.log(`Imported ${files[i]} (${bytesToHuman(size)}) (${mime} mimetype) to user ${userId}`);
   }
 
   process.env.DATABASE_URL = config.core.database_url;
@@ -49,9 +54,13 @@ async function main() {
   console.log(`Copying files to ${config.datasource.type} storage..`);
   for (let i = 0; i !== files.length; ++i) {
     const file = files[i];
-    await datasource.save(file, await readFile(join(directory, file)));
+    await datasource.save(file, await readFile(join(directory, file)), {
+      type: data[i]?.mimetype ?? 'application/octet-stream',
+    });
   }
   console.log(`Finished copying files to ${config.datasource.type} storage.`);
+
+  process.exit(0);
 }
 
 main();

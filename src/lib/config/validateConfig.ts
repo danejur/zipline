@@ -4,7 +4,7 @@ import { inspect } from 'util';
 import Logger from 'lib/logger';
 import { humanToBytes } from 'utils/bytes';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import { join, resolve } from 'path';
 
 const discord_content = s
   .object({
@@ -35,8 +35,9 @@ const validator = s.object({
     port: s.number.default(3000),
     database_url: s.string,
     logger: s.boolean.default(false),
-    stats_interval: s.number.default(1800),
-    invites_interval: s.number.default(1800),
+    stats_interval: s.number.default(1800), // 30m
+    invites_interval: s.number.default(1800), // 30m
+    thumbnails_interval: s.number.default(600), // 10m
     compression: s
       .object({
         enabled: s.boolean.default(false),
@@ -53,7 +54,7 @@ const validator = s.object({
       type: s.enum('local', 's3', 'supabase').default('local'),
       local: s
         .object({
-          directory: s.string.default('./uploads'),
+          directory: s.string.default(resolve('./uploads')).transform((v) => resolve(v)),
         })
         .default({
           directory: './uploads',
@@ -96,6 +97,7 @@ const validator = s.object({
       format_date: s.string.default('YYYY-MM-DD_HH:mm:ss'),
       default_expiration: s.string.optional.default(null),
       assume_mimetypes: s.boolean.default(false),
+      random_words_separator: s.string.default('-'),
     })
     .default({
       default_format: 'RANDOM',
@@ -139,11 +141,11 @@ const validator = s.object({
           s.object({
             label: s.string,
             link: s.string,
-          })
+          }),
         )
         .default([
           { label: 'Zipline', link: 'https://github.com/diced/zipline' },
-          { label: 'Documentation', link: 'https://zipline.diced.tech/' },
+          { label: 'Documentation', link: 'https://zipline.diced.sh/' },
         ]),
     })
     .default({
@@ -154,7 +156,7 @@ const validator = s.object({
 
       external_links: [
         { label: 'Zipline', link: 'https://github.com/diced/zipline' },
-        { label: 'Documentation', link: 'https://zipline.diced.tech/' },
+        { label: 'Documentation', link: 'https://zipline.diced.sh/' },
       ],
     }),
   discord: s
@@ -168,14 +170,19 @@ const validator = s.object({
     .nullish.default(null),
   oauth: s
     .object({
+      bypass_local_login: s.boolean.default(false),
+
       github_client_id: s.string.nullable.default(null),
       github_client_secret: s.string.nullable.default(null),
 
       discord_client_id: s.string.nullable.default(null),
       discord_client_secret: s.string.nullable.default(null),
+      discord_redirect_uri: s.string.nullable.default(null),
+      discord_whitelisted_users: s.string.array.default([]),
 
       google_client_id: s.string.nullable.default(null),
       google_client_secret: s.string.nullable.default(null),
+      google_redirect_uri: s.string.nullable.default(null),
 
       authentik_client_id: s.string.nullable.default(null),
       authentik_client_secret: s.string.nullable.default(null),
@@ -193,6 +200,8 @@ const validator = s.object({
       user_registration: s.boolean.default(false),
       headless: s.boolean.default(false),
       default_avatar: s.string.nullable.default(null),
+      robots_txt: s.boolean.default(false),
+      thumbnails: s.boolean.default(false),
     })
     .default({
       invites: false,
@@ -202,6 +211,8 @@ const validator = s.object({
       user_registration: false,
       headless: false,
       default_avatar: null,
+      robots_txt: false,
+      thumbnails: false,
     }),
   chunks: s
     .object({

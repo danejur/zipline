@@ -14,10 +14,14 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
         where: {
           userId: user.id,
         },
+        include: {
+          thumbnail: true,
+        },
       });
 
       for (let i = 0; i !== files.length; ++i) {
         await datasource.delete(files[i].name);
+        if (files[i].thumbnail?.name) await datasource.delete(files[i].thumbnail.name);
       }
 
       const { count } = await prisma.file.deleteMany({
@@ -31,15 +35,49 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
     } else {
       if (!req.body.id) return res.badRequest('no file id');
 
-      const file = await prisma.file.delete({
+      let file = await prisma.file.findFirst({
         where: {
           id: req.body.id,
+          userId: user.id,
+        },
+        include: {
+          user: {
+            select: {
+              administrator: true,
+              superAdmin: true,
+              username: true,
+              id: true,
+            },
+          },
+          thumbnail: true,
+        },
+      });
+
+      if (!file && (!user.administrator || !user.superAdmin)) return res.notFound('file not found');
+
+      file = await prisma.file.delete({
+        where: {
+          id: req.body.id,
+        },
+        include: {
+          user: {
+            select: {
+              administrator: true,
+              superAdmin: true,
+              username: true,
+              id: true,
+            },
+          },
+          thumbnail: true,
         },
       });
 
       await datasource.delete(file.name);
+      if (file.thumbnail?.name) await datasource.delete(file.thumbnail.name);
 
-      logger.info(`User ${user.username} (${user.id}) deleted an image ${file.name} (${file.id})`);
+      logger.info(
+        `User ${user.username} (${user.id}) deleted an image ${file.name} (${file.id}) owned by ${file.user.username} (${file.user.id})`,
+      );
 
       // @ts-ignore
       if (file.password) file.password = true;
@@ -51,14 +89,33 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
 
     let file;
 
-    if (req.body.favorite !== null)
+    if (req.body.favorite !== null) {
+      file = await prisma.file.findFirst({
+        where: {
+          id: req.body.id,
+          userId: user.id,
+        },
+        include: {
+          user: {
+            select: {
+              administrator: true,
+              superAdmin: true,
+              username: true,
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (!file && (!user.administrator || !user.superAdmin)) return res.notFound('file not found');
+
       file = await prisma.file.update({
         where: { id: req.body.id },
         data: {
           favorite: req.body.favorite,
         },
       });
-
+    }
     // @ts-ignore
     if (file.password) file.password = true;
     return res.json(file);
@@ -82,8 +139,9 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
       expiresAt: Date;
       maxViews: number;
       views: number;
-      size: number;
+      size: bigint;
       originalName: string;
+      thumbnail?: { name: string };
     }[] = await prisma.file.findMany({
       where: {
         userId: user.id,
@@ -104,11 +162,16 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
         maxViews: true,
         size: true,
         originalName: true,
+        thumbnail: true,
       },
     });
 
     for (let i = 0; i !== files.length; ++i) {
       (files[i] as unknown as { url: string }).url = formatRootUrl(config.uploader.route, files[i].name);
+
+      if (files[i].thumbnail) {
+        (files[i].thumbnail as unknown as string) = formatRootUrl('/r', files[i].thumbnail.name);
+      }
     }
 
     if (req.query.filter && req.query.filter === 'media')
