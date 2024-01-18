@@ -36,12 +36,12 @@ export const getServerSideProps: GetServerSideProps<ServerSideProps> = async (ct
   const googleEnabled =
     isNotNullOrUndefined(config.oauth?.google_client_id) &&
     isNotNullOrUndefined(config.oauth?.google_client_secret);
-  const authentikEnabled = isNotNullOrUndefined(config.oauth?.authentik_client_id) &&
+  const authentikEnabled =
+    isNotNullOrUndefined(config.oauth?.authentik_client_id) &&
     isNotNullOrUndefined(config.oauth?.authentik_client_secret) &&
     isNotNullOrUndefined(config.oauth?.authentik_authorize_url) &&
     isNotNullOrUndefined(config.oauth?.authentik_userinfo_url) &&
-    isNotNullOrUndefined(config.oauth?.authentik_token_url)
-  ]);
+    isNotNullOrUndefined(config.oauth?.authentik_token_url);
 
   const oauth_providers: OauthProvider[] = [];
 

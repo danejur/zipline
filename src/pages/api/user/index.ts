@@ -134,7 +134,7 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
     } else if (user.oauth.find((o) => o.provider === 'AUTHENTIK')) {
       const resp = await authentik_auth.oauth_user(
         user.oauth.find((o) => o.provider === 'AUTHENTIK').token,
-        config.oauth.authentik_userinfo_url
+        zconfig.oauth.authentik_userinfo_url
       );
       if (!resp) {
         logger.debug(`oauth expired for ${JSON.stringify(user, jsonUserReplacer)}`);
@@ -142,9 +142,9 @@ async function handler(req: NextApiReq, res: NextApiRes, user: UserExtended) {
         return res.json({
           error: 'oauth token expired',
           redirect_uri: authentik_auth.oauth_url(
-            config.oauth.authentik_client_id,
-            `${config.core.return_https ? 'https' : 'http'}://${req.headers.host}`,
-            config.oauth.authentik_authorize_url
+            zconfig.oauth.authentik_client_id,
+            `${zconfig.core.return_https ? 'https' : 'http'}://${req.headers.host}`,
+            zconfig.oauth.authentik_authorize_url
           ),
         });
       }
